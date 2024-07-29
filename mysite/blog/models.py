@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone   #Часовые пояса
 from django.contrib.auth.models import User  #Аутентификация пользователя
+from django.urls import reverse
 
 # Делаем каждый раз когда изменяем этот файл
 # python manage.py makemigrations blog
@@ -20,7 +21,32 @@ from django.contrib.auth.models import User  #Аутентификация по�
 
 # python manage.py runserver
 
+# python manage.py shell
+
+# >>> # from django.contrib.auth.models import User
+# >>> # from blog.models import Post
+# >>> # user = User.objects.get(username='admin')
+# >>> # post = Post(title='Another post', slug='another-post', body='Post body.', author=user)
+# >>> # post.save()
+
+# >>> post = Post(title='Another post', slug='another-post', body='Post body.', author=user)
+# Traceback (most recent call last):
+#   File "<console>", line 1, in <module>
+# NameError: name 'user' is not defined. Did you mean: 'User'?
+# >>> all_posts = Post.objects.all()
+# >>> Post.objects.all()
+# <QuerySet []>
+# >>> Post.objects.filter(publish__year=2017, author__username='admin')
+# <QuerySet []>
+# >>> Post.objects.filter(publish__year=2023).exclude(title__startswith='Title')
+
+# https://docs.djangoproject.com/en/2.0/ref/templates/ Список встроенных тегов и шаблонов теги и шаблоны
+
 # Create your models here.
+class PublishedManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(status='published')
+
 class Post(models.Model):
     STATUS_CHOICES = (
         ('draft', 'Draft'),
@@ -35,12 +61,22 @@ class Post(models.Model):
     created = models.DateTimeField(auto_now_add=True)  #дата создания статьи
     updated = models.DateTimeField(auto_now=True)  #дата и период когда статья была откорректирована
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')  #сстатус статьи
+    objects = models.Manager() # менеджер по умолчанию
+    published = PublishedManager()  # Наш новый менеджер
+
+    def get_absolute_url(self):
+        return reverse('blog:post_detail', args=[self.publish.year, self.publish.month, self.publish.day, self.publish.slug])
+
     class Meta: # метаданные в порядке убывания (префикс - )
         ordering = ('-publish',)
+
+        # def __init__(self):
+        #     self.title = None
+
         def __str__(self):
             return self.title #возвращает отображение понятное для человека
 
-
+# Post.published.filter()
 
 
 
