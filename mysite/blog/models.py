@@ -70,10 +70,6 @@ class Post(models.Model):
 
     class Meta: # метаданные в порядке убывания (префикс - )
         ordering = ('-publish',)
-
-        # def __init__(self):
-        #     self.title = None
-
         def __str__(self):
             return self.title #возвращает отображение понятное для человека
 
